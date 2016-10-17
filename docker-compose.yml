@@ -5,8 +5,11 @@ services:
 ### Workspace Utilities Container ###########################
 
     workspace:
+       #构建容器指令
         build:
+            #Dockerfile所在目录
             context: ./workspace
+            #传递给Dockerfile的变量
             args:
                 - INSTALL_XDEBUG=false
                 - INSTALL_MONGO=false
@@ -42,15 +45,21 @@ services:
                 - INSTALL_OPCACHE=false
                 - INSTALL_AEROSPIKE_EXTENSION=false
             dockerfile: Dockerfile-70
+        #设置挂载的数据卷容器
         volumes_from:
             - volumes_source
+        #暴露端口，但不映射到宿主机，只被连接的服务访问
         expose:
             - "9000"
+       #链接到其它服务中的容器,形式"服务名称:服务别名",相应的别名会在容器中的/etc/hosts里创建,相应的环境变量也会
+       #external_links则设置链接到整个工程外的容器
         links:
             - workspace
         extra_hosts:
             # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
             - "dockerhost:10.0.75.1"
+        #只给定名称的变量会自动获取它在 Compose 主机上的值，可以用来防止泄露不必要的数据
+        #也可以通过env_file设置从文件中读取环境变量
         environment:
             # IMPORTANT: Set the Remote Interpreter entry matching name to `laravel`
             - PHP_IDE_CONFIG="serverName=laravel"
@@ -64,8 +73,10 @@ services:
                 - PHP_UPSTREAM=php-fpm
         volumes_from:
             - volumes_source
+        #卷挂载路径设置,在最后加上:ro，设置该卷只读
         volumes:
             - ./logs/nginx/:/var/log/nginx
+        #设置端口映射关系
         ports:
             - "80:80"
             - "443:443"
@@ -297,6 +308,7 @@ services:
 ### Databases Data Container ################################
 
     volumes_data:
+        #tiannon/true是一个专门创建数据卷容器的镜像，继承自一个空镜像
         image: tianon/true
         volumes:
             - ./data/mysql:/var/lib/mysql
